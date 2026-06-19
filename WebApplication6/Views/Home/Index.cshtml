@@ -1,0 +1,276 @@
+﻿@{
+    ViewData["Title"] = "Home Page";
+}
+
+<h2>Employee Data</h2>
+
+<input type="hidden" id="id" />
+
+<div>
+
+    <input id="name"
+           placeholder="Name" />
+
+    <input id="kemandoran"
+           placeholder="Kemandoran" />
+
+    <button onclick="saveEmployee()">
+        Save
+    </button>
+
+    <button onclick="resetForm()">
+        Cancel
+    </button>
+
+</div>
+
+<br>
+
+<table border="1">
+
+    <thead>
+
+        <tr>
+            <th>Nomor</th>
+            <th>Nama</th>
+            <th>Kemandoran</th>
+            <th>Action</th>
+        </tr>
+
+    </thead>
+
+    <tbody id="employeeTable">
+    </tbody>
+
+</table>
+
+<script>
+
+    async function loadData() {
+
+        let response =
+            await fetch(
+                '/api/employee'
+            );
+
+        let result =
+            await response.json();
+
+        let rows = '';
+
+        result.data.forEach(emp => {
+
+            rows += `
+
+    <tr>
+
+    <td>${emp.id}</td>
+
+    <td>${emp.name}</td>
+
+    <td>${emp.kemandoran}</td>
+
+    <td>
+
+    <button
+    onclick="
+    editEmployee(
+    ${emp.id},
+    '${emp.name}',
+    '${emp.kemandoran}'
+    )">
+    Edit
+    </button>
+
+    <button
+    onclick="
+    deleteEmployee(
+    ${emp.id}
+    )">
+    Delete
+    </button>
+
+    </td>
+
+    </tr>
+
+    `;
+
+        });
+
+        document
+            .getElementById(
+                'employeeTable'
+            )
+            .innerHTML =
+            rows;
+
+    }
+
+    async function saveEmployee() {
+
+        let id =
+            document
+                .getElementById(
+                    'id'
+                )
+                .value;
+
+        let body = {
+
+            name:
+                document
+                    .getElementById(
+                        'name'
+                    )
+                    .value,
+
+            kemandoran:
+                document
+                    .getElementById(
+                        'kemandoran'
+                    )
+                    .value
+
+        };
+
+        let url = '';
+
+        let method = '';
+
+        if (id) {
+
+            url =
+                `/api/employee/update/${id}`;
+
+            method =
+                'PUT';
+
+        }
+        else {
+
+            url =
+                '/api/employee/create';
+
+            method =
+                'POST';
+
+        }
+
+        let response =
+            await fetch(
+                url,
+                {
+                    method,
+
+                    headers: {
+                        'Content-Type':
+                            'application/json'
+                    },
+
+                    body:
+                        JSON.stringify(
+                            body
+                        )
+
+                }
+            );
+
+        let result =
+            await response.json();
+
+        alert(
+            result.message
+        );
+
+        resetForm();
+
+        loadData();
+
+    }
+
+    function editEmployee(
+        id,
+        name,
+        kemandoran
+    ) {
+
+        document
+            .getElementById(
+                'id'
+            )
+            .value =
+            id;
+
+        document
+            .getElementById(
+                'name'
+            )
+            .value =
+            name;
+
+        document
+            .getElementById(
+                'kemandoran'
+            )
+            .value =
+            kemandoran;
+
+    }
+
+    async function deleteEmployee(
+        id
+    ) {
+
+        if (
+            !confirm(
+                'Delete employee?'
+            )
+        )
+            return;
+
+        let response =
+            await fetch(
+                `/api/employee/delete/${id}`,
+                {
+                    method:
+                        'DELETE'
+                }
+            );
+
+        let result =
+            await response.json();
+
+        alert(
+            result.message
+        );
+
+        loadData();
+
+    }
+
+    function resetForm() {
+
+        document
+            .getElementById(
+                'id'
+            )
+            .value = '';
+
+        document
+            .getElementById(
+                'name'
+            )
+            .value = '';
+
+        document
+            .getElementById(
+                'kemandoran'
+            )
+            .value = '';
+
+    }
+
+    loadData();
+
+</script>
